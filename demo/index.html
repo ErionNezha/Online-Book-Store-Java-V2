@@ -1,0 +1,125 @@
+<!-- Created by Erion Nezha — © 2026 All rights reserved -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Online Book Store — Web Port</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0f14;color:#e6e6e6;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header.top{background:linear-gradient(135deg,#101820,#1b2a3a);padding:18px 20px;text-align:center;border-bottom:2px solid #00d4ff33}
+header.top h1{font-size:1.25rem;color:#fff}
+header.top p{color:#9fb3c8;font-size:.82rem;margin-top:6px}
+.wrap{flex:1;max-width:1000px;width:100%;margin:0 auto;padding:18px}
+.card{background:#0d1420;border:1px solid #ffffff14;border-radius:10px;padding:18px;margin-bottom:14px}
+.card h2{color:#7fdbff;font-size:1.05rem;margin-bottom:12px}
+input,select,button{font-family:inherit;font-size:.92rem;padding:9px 12px;border-radius:7px;border:1px solid #ffffff22;background:#131c2a;color:#fff;margin:4px 4px 4px 0}
+button{background:#00d4ff;color:#04121a;border:none;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.12)}
+button.ghost{background:transparent;border:1px solid #00d4ff66;color:#7fdbff}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.88rem}
+th,td{border:1px solid #ffffff18;padding:8px 10px;text-align:left}
+th{background:#131c2a;color:#7fdbff}
+tr:nth-child(even){background:#ffffff06}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.msg{background:#00d4ff14;border:1px solid #00d4ff44;border-radius:8px;padding:10px 14px;margin:10px 0;font-size:.9rem;color:#bfe9ff}
+footer{text-align:center;padding:14px;color:#5c6b7f;font-size:.85rem;border-top:1px solid #ffffff10}
+footer strong{color:#9fb3c8}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header class="top"><h1>📚 Online Book Store</h1><p>Web port of the Java/JSP Online Book Store — login, browse by category, cart and checkout.</p></header>
+<div class="wrap">
+
+<div class="card" id="loginCard">
+<h2>📚 Online Book Store — Login / Register</h2>
+<input id="u" placeholder="Username"> <input id="p" type="password" placeholder="Password">
+<button onclick="doLogin()">Login</button> <button class="ghost" onclick="doRegister()">Register</button>
+<div class="msg hidden" id="loginMsg"></div>
+<p style="font-size:.8rem;color:#5c6b7f;margin-top:8px">Demo login: user / pass (çdo llogari e re ruhet lokalisht)</p>
+</div>
+<div id="app" class="hidden">
+<div class="nav">
+<button onclick="showBrowse()">🏠 Browse Books</button>
+<button onclick="showCart()">🛒 Cart (<span id="cartN">0</span>)</button>
+<button onclick="showOrders()">📦 Orders History</button>
+<button class="ghost" onclick="doLogout()">Logout</button>
+<span style="margin-left:auto;color:#9fb3c8" id="who"></span>
+</div>
+<div class="card" id="browseCard">
+<h2>Browse Available Books</h2>
+<select id="cat"><option value="all">All Categories</option><option value="ora">Oracle</option><option value="dotnet">.NET</option><option value="java">Java</option></select>
+<button onclick="renderBooks()">Browse</button> <input id="q" placeholder="Query books…"> <button class="ghost" onclick="renderBooks()">Query</button>
+<div id="bookList"></div>
+</div>
+<div class="card hidden" id="cartCard">
+<h2>🛒 Your Cart</h2>
+<div id="cartList"></div>
+<button onclick="finalize()">Finalize Order</button>
+<div class="msg hidden" id="orderMsg"></div>
+</div>
+<div class="card hidden" id="ordersCard">
+<h2>📦 Orders History</h2>
+<div id="ordersList"></div>
+</div>
+</div>
+
+</div>
+<footer>Krijuar nga <strong>Erion Nezha</strong> — © 2026</footer>
+<script>
+var BOOKS=[
+ {id:1,title:'Oracle 11g Complete Reference',cat:'ora',price:45},
+ {id:2,title:'Oracle PL/SQL Programming',cat:'ora',price:39},
+ {id:3,title:'ASP.NET Core in Action',cat:'dotnet',price:42},
+ {id:4,title:'C# 9 and .NET 5',cat:'dotnet',price:38},
+ {id:5,title:'Effective Java (3rd Ed)',cat:'java',price:49},
+ {id:6,title:'Java: The Complete Reference',cat:'java',price:44},
+ {id:7,title:'Head First Java',cat:'java',price:35},
+ {id:8,title:'Oracle Database 12c SQL',cat:'ora',price:41},
+ {id:9,title:'Pro ASP.NET MVC',cat:'dotnet',price:36},
+ {id:10,title:'Spring in Action',cat:'java',price:47}];
+var users={'user':'pass'},cur=null,cart=[],orders=[],oid=1000;
+function msg(id,t){var e=document.getElementById(id);e.textContent=t;e.classList.remove('hidden');}
+function doLogin(){var u=document.getElementById('u').value,p=document.getElementById('p').value;
+ if(users[u]&&users[u]===p){cur=u;enter();}else msg('loginMsg','Wrong username or password.');}
+function doRegister(){var u=document.getElementById('u').value,p=document.getElementById('p').value;
+ if(!u||!p){msg('loginMsg','Enter username and password.');return;}
+ users[u]=p;cur=u;enter();msg('loginMsg','Registered and logged in as '+u);}
+function enter(){document.getElementById('loginCard').classList.add('hidden');
+ document.getElementById('app').classList.remove('hidden');
+ document.getElementById('who').textContent='Welcome, '+cur;renderBooks();}
+function doLogout(){cur=null;cart=[];document.getElementById('app').classList.add('hidden');
+ document.getElementById('loginCard').classList.remove('hidden');}
+function showBrowse(){hide(['cartCard','ordersCard']);document.getElementById('browseCard').classList.remove('hidden');}
+function showCart(){hide(['browseCard','ordersCard']);document.getElementById('cartCard').classList.remove('hidden');renderCart();}
+function showOrders(){hide(['browseCard','cartCard']);document.getElementById('ordersCard').classList.remove('hidden');renderOrders();}
+function hide(ids){ids.forEach(function(i){document.getElementById(i).classList.add('hidden');});}
+function renderBooks(){
+ var cat=document.getElementById('cat').value,q=(document.getElementById('q').value||'').toLowerCase();
+ var list=BOOKS.filter(function(b){return (cat==='all'||b.cat===cat)&&(!q||b.title.toLowerCase().indexOf(q)>=0);});
+ var h='<table><tr><th>Title</th><th>Category</th><th>Price</th><th></th></tr>';
+ list.forEach(function(b){h+='<tr><td>'+b.title+'</td><td>'+b.cat+'</td><td>$'+b.price+'</td><td><button onclick="addCart('+b.id+')">Add to cart</button></td></tr>';});
+ h+='</table>';document.getElementById('bookList').innerHTML=h||'No books found.';
+}
+function addCart(id){cart.push(BOOKS.find(function(b){return b.id===id;}));document.getElementById('cartN').textContent=cart.length;renderCart();}
+function renderCart(){
+ var h='',t=0;
+ cart.forEach(function(b,i){h+='<div>'+(i+1)+'. '+b.title+' — $'+b.price+'</div>';t+=b.price;});
+ document.getElementById('cartList').innerHTML=h?h+'<p style="margin-top:8px"><strong>Total: $'+t+'</strong></p>':'Cart is empty.';
+}
+function finalize(){
+ if(!cart.length){msg('orderMsg','Cart is empty.');return;}
+ oid++;var t=cart.reduce(function(s,b){return s+b.price;},0);
+ orders.push({id:'ORD-'+oid,items:cart.length,total:t,date:new Date().toLocaleString()});
+ cart=[];document.getElementById('cartN').textContent='0';renderCart();
+ msg('orderMsg','Order Has Been Finalized. Order id : ORD-'+oid);
+}
+function renderOrders(){
+ document.getElementById('ordersList').innerHTML=orders.length?
+  orders.map(function(o){return '<div>'+o.id+' — '+o.items+' item(s) — $'+o.total+' — '+o.date+'</div>';}).join(''):'No orders yet.';
+}
+</script>
+</body>
+</html>
